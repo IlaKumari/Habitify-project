@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Habitify — Web & App</title>
+  <meta name="description" content="Habitify: Works on web and as PWA app with offline support." />
+  <meta name="theme-color" content="#0f1419" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Habitify" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%2355efc4' width='192' height='192'/><text x='96' y='140' font-size='100' font-weight='900' text-anchor='middle' fill='white'>✨</text></svg>" />
+  <style>
+    :root{
+      --bg: #0f1419;
+      --card: #1a2332;
+      --muted: #cbd5e0;
+      --text: #e2e8f0;
+      --accent-1: #ff7675;
+      --accent-2: #55efc4;
+      --accent-3: #74b9ff;
+      --danger: #ff6b6b;
+      --glass: rgba(255,255,255,0.08);
+      --shadow-1: 0 12px 40px rgba(0,0,0,0.4);
+      --glass-border: rgba(255,255,255,0.1);
+      --success: #00b894;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;line-height:1.6;color:var(--text);background:linear-gradient(135deg, #0a0e12 0%, #1a2332 50%, #0f1419 100%);transition:background 0.3s ease;overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+
+    input,textarea,select{user-select:text;-webkit-user-select:text}
+
+    .page{position:fixed;top:0;left:0;width:100%;height:100%;opacity:0;visibility:hidden;transition:opacity 0.4s, visibility 0.4s;z-index:10}
+    .page.active{opacity:1;visibility:visible;z-index:100}
+
+    /* AUTH PAGE */
+    .auth-page{display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+    .auth-container{width:100%;max-width:500px}
+    .auth-card{background:linear-gradient(135deg, rgba(26,35,50,0.95), rgba(26,35,50,0.8));backdrop-filter:blur(20px);padding:48px;border-radius:24px;box-shadow:0 25px 50px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);animation:slideInScale 0.6s ease both}
+
+    @keyframes slideInScale{from{opacity:0;transform:scale(0.8) translateY(30px)}to{opacity:1;transform:scale(1) translateY(0)}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.8}}
+
+    .auth-logo{width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg, #ff7675 0%, #55efc4 50%, #74b9ff 100%);display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:2rem;box-shadow:0 15px 40px rgba(255,118,117,0.4);margin:0 auto 20px;animation:pulse 3s ease-in-out infinite}
+
+    .auth-card h1{margin:0 0 8px 0;font-size:2rem;background:linear-gradient(90deg, #ff7675, #55efc4, #74b9ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:900;text-align:center}
+    .auth-card p{margin:0 0 30px 0;color:var(--muted);font-size:1rem;text-align:center}
+
+    .auth-form{display:flex;flex-direction:column;gap:16px}
+    .form-group{text-align:left}
+    .form-group label{display:block;font-size:0.85rem;color:var(--muted);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
+    .form-group input{width:100%;padding:14px 16px;border-radius:12px;border:2px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text);font-size:1rem;outline:none;transition:all 0.3s;-webkit-appearance:none;appearance:none}
+    .form-group input:focus{border-color:#55efc4;background:rgba(255,255,255,0.05);box-shadow:0 0 15px rgba(85,239,196,0.2)}
+    .form-group input::placeholder{color:rgba(255,255,255,0.3)}
+
+    .password-group{display:flex;gap:8px}
+    .password-group input{flex:1}
+    .password-toggle{background:transparent;border:1px solid rgba(255,255,255,0.2);color:var(--text);padding:8px 12px;border-radius:8px;cursor:pointer;font-size:1rem;transition:all 0.2s;-webkit-appearance:none;appearance:none}
+    .password-toggle:hover{border-color:#55efc4;color:#55efc4}
+    .password-toggle:active{transform:scale(0.98)}
+
+    .auth-btn{width:100%;padding:14px;background:linear-gradient(135deg, #ff7675 0%, #55efc4 100%);color:white;border:none;border-radius:12px;font-weight:700;font-size:1.05rem;cursor:pointer;box-shadow:0 8px 20px rgba(255,118,117,0.3);transition:all 0.2s;-webkit-appearance:none;appearance:none}
+    .auth-btn:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(255,118,117,0.4)}
+    .auth-btn:active{transform:translateY(-1px)}
+
+    .alert{padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:0.9rem;animation:slideIn 0.3s ease}
+    @keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+    .alert.success{background:rgba(0,184,148,0.2);border:1px solid #55efc4;color:#55efc4}
+    .alert.error{background:rgba(255,107,107,0.2);border:1px solid #ff7675;color:#ff7675}
+
+    .demo-box{background:rgba(116,185,255,0.1);border:1px solid rgba(116,185,255,0.3);padding:12px;border-radius:10px;margin-bottom:16px;font-size:0.85rem;color:var(--muted)}
+    .demo-box strong{color:#74b9ff}
+
+    .auth-link{text-align:center;margin-top:16px}
+    .auth-link a{color:#55efc4;cursor:pointer;text-decoration:none;font-weight:600;transition:color 0.2s}
+    .auth-link a:hover{color:#ff7675;text-decoration:underline}
+
+    .form-divider{display:flex;align-items:center;margin:20px 0;gap:10px}
+    .form-divider::before,.form-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.1)}
+    .form-divider span{color:var(--muted);font-size:0.85rem}
+
+    .hidden{display:none}
+
+    /* APP PAGE */
+    .app-page{display:flex;flex-direction:column;height:100%;-webkit-user-select:none;user-select:none}
+    header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:linear-gradient(90deg, rgba(255,118,117,0.1), rgba(85,239,196,0.1), rgba(116,185,255,0.1));backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.1);gap:16px;position:relative;z-index:10;flex-shrink:0}
+
+    .header-left{display:flex;align-items:center;gap:12px;flex:1}
+    .header-profile{display:flex;align-items:center;gap:12px;padding:8px 14px;background:rgba(255,255,255,0.05);border-radius:10px;border:1px solid rgba(255,255,255,0.1);cursor:pointer;transition:all 0.2s;-webkit-user-select:none}
+    .header-profile:active{background:rgba(255,255,255,0.1);transform:translateY(-2px)}
+    
+    .header-profile-section{display:flex;align-items:center;gap:10px}
+    .header-profile-avatar{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg, #ff7675, #55efc4);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:1rem;flex-shrink:0;position:relative;overflow:hidden}
+    .header-profile-avatar img{width:100%;height:100%;object-fit:cover}
+    .header-profile-name{font-weight:600;font-size:0.9rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+
+    .header-center{display:flex;gap:12px;align-items:center;justify-content:center;flex:1}
+    .header-stats{display:flex;gap:12px;align-items:center}
+    .stat-item{display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(255,255,255,0.05);border-radius:10px;border:1px solid rgba(255,255,255,0.1)}
+    .stat-label{font-size:0.7rem;color:var(--muted);text-transform:uppercase}
+    .stat-value{font-size:1.1rem;font-weight:900;color:#55efc4}
+
+    .header-right{display:flex;align-items:center;gap:12px;flex:1;justify-content:flex-end}
+    .brand{display:flex;align-items:center;gap:8px;cursor:pointer;-webkit-user-select:none;transition:all 0.2s}
+    .brand:active{transform:scale(0.95)}
+    .brand-logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg, #ff7675, #55efc4);display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:1.1rem;box-shadow:0 8px 20px rgba(255,118,117,0.3)}
+    .brand h1{margin:0;font-size:1rem;background:linear-gradient(90deg, #ff7675, #55efc4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:800;white-space:nowrap}
+
+    main{display:flex;flex:1;overflow:hidden}
+
+    .content-area{flex:1;display:flex;align-items:flex-start;justify-content:flex-start;overflow-y:auto;position:relative;-webkit-overflow-scrolling:touch;padding:20px}
+    
+    .welcome-dashboard{width:100%;color:var(--muted)}
+    
+    .welcome-header{margin-bottom:20px;padding-bottom:16px;border-bottom:2px solid rgba(255,255,255,0.1)}
+    .welcome-greeting{font-size:1.6rem;color:var(--text);margin:0;font-weight:800}
+    .welcome-subtext{font-size:0.9rem;color:var(--muted);margin:4px 0 0 0}
+
+    .pending-tasks-section{margin-bottom:20px}
+    .section-title{font-size:1.1rem;font-weight:800;color:var(--text);margin:0 0 12px 0;display:flex;align-items:center;gap:6px}
+    .section-title-icon{font-size:1.2rem}
+
+    .tasks-list{display:flex;flex-direction:column;gap:10px;max-height:200px;overflow-y:auto}
+    .task-item{background:linear-gradient(135deg, rgba(255,118,117,0.08), rgba(85,239,196,0.08));padding:12px;border-radius:10px;border-left:3px solid #55efc4;display:flex;align-items:center;justify-content:space-between;transition:all 0.2s}
+    .task-item:active{background:linear-gradient(135deg, rgba(85,239,196,0.15), rgba(116,185,255,0.15))}
+    .task-info{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+    .task-checkbox{width:20px;height:20px;border-radius:6px;background:rgba(85,239,196,0.2);border:1px solid #55efc4;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .task-details{text-align:left;min-width:0}
+    .task-name{font-weight:600;color:var(--text);font-size:0.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .task-category{font-size:0.8rem;color:var(--muted)}
+    .task-action{display:flex;gap:6px}
+    .task-btn{padding:6px 12px;background:rgba(85,239,196,0.2);border:1px solid rgba(85,239,196,0.3);color:#55efc4;border-radius:6px;cursor:pointer;font-weight:600;font-size:0.75rem;-webkit-appearance:none;appearance:none;white-space:nowrap}
+
+    .social-section{display:grid;grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));gap:12px;margin-bottom:20px}
+    .social-card{background:linear-gradient(135deg, rgba(116,185,255,0.08), rgba(85,239,196,0.08));padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);text-align:center;transition:all 0.2s}
+    .social-card:active{transform:translateY(-4px);border-color:#55efc4}
+    .social-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg, #ff7675, #55efc4);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.9rem;margin:0 auto 8px;overflow:hidden}
+    .social-avatar img{width:100%;height:100%;object-fit:cover}
+    .social-name{font-weight:700;color:var(--text);font-size:0.85rem;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .social-level{font-size:0.75rem;color:#55efc4;margin-bottom:6px}
+    .social-actions{display:flex;gap:6px;justify-content:center}
+    .social-btn{flex:1;padding:6px 8px;background:rgba(85,239,196,0.2);border:1px solid rgba(85,239,196,0.3);color:#55efc4;border-radius:6px;cursor:pointer;font-weight:600;font-size:0.65rem;-webkit-appearance:none;appearance:none;transition:all 0.2s}
+    .social-btn:active{background:rgba(85,239,196,0.4);transform:scale(0.95)}
+
+    .quick-stats{display:grid;grid-template-columns:repeat(auto-fit, minmax(120px, 1fr));gap:12px;margin-bottom:20px}
+    .stat-card-small{background:rgba(255,255,255,0.03);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);text-align:center}
+    .stat-card-label{font-size:0.8rem;color:var(--muted);margin-bottom:6px}
+    .stat-card-value{font-size:1.8rem;font-weight:900;color:#55efc4}
+
+    .drawer-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:100;display:none}
+    .drawer-overlay.show{display:block}
+
+    .drawer{position:fixed;left:0;top:0;height:100%;width:320px;background:var(--card);box-shadow:8px 0 30px rgba(0,0,0,0.5);transform:translateX(-100%);transition:transform 0.3s ease;z-index:101;display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;border-right:1px solid rgba(255,255,255,0.1)}
+    .drawer.show{transform:translateX(0)}
+
+    .drawer-header{padding:20px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+    .drawer-title{font-size:1.2rem;font-weight:800;color:var(--text)}
+    .drawer-close{background:transparent;border:none;color:var(--text);font-size:1.5rem;cursor:pointer;opacity:0.6;transition:opacity 0.2s;-webkit-appearance:none;appearance:none}
+    .drawer-close:active{opacity:1}
+
+    .drawer-content{flex:1;padding:20px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+    .drawer-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,0.03);border-radius:12px;cursor:pointer;transition:all 0.2s;border:2px solid transparent;-webkit-user-select:none;-webkit-appearance:none;appearance:none;text-decoration:none;color:inherit}
+    .drawer-item:active{background:rgba(255,255,255,0.08);border-color:#55efc4;transform:translateX(4px)}
+    .drawer-item-icon{font-size:1.3rem;flex-shrink:0}
+    .drawer-item-text{font-weight:600;color:var(--text)}
+    .drawer-divider{height:1px;background:rgba(255,255,255,0.1);margin:8px 0;flex-shrink:0}
+
+    .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+    .modal-overlay.show{display:flex}
+
+    .modal-tab{background:var(--card);border-radius:20px;width:100%;max-width:700px;height:fit-content;max-height:90vh;box-shadow:0 25px 60px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);display:flex;flex-direction:column;animation:slideInScale 0.4s ease both;position:relative;-webkit-appearance:none;appearance:none;margin:auto}
+
+    .modal-tab-header{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.1);flex-shrink:0}
+    .modal-tab-title{font-size:1.4rem;font-weight:800;background:linear-gradient(90deg, #ff7675, #55efc4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0}
+    .modal-close-btn{background:transparent;border:none;color:var(--text);font-size:1.5rem;cursor:pointer;opacity:0.6;transition:opacity 0.2s;-webkit-appearance:none;appearance:none;flex-shrink:0}
+    .modal-close-btn:active{opacity:1}
+
+    .modal-tab-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px}
+
+    .habit-input{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-start}
+    .habit-input input,.habit-input select{flex:1;min-width:150px;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text);font-family:inherit;font-size:1rem;outline:none;transition:border-color 0.2s;-webkit-appearance:none;appearance:none}
+    .habit-input input:focus,.habit-input select:focus{border-color:#55efc4}
+
+    .habit-btn{background:linear-gradient(135deg, #ff7675, #55efc4);color:white;border:none;padding:12px 20px;border-radius:10px;cursor:pointer;font-weight:700;transition:all 0.2s;white-space:nowrap;-webkit-appearance:none;appearance:none;font-size:1rem}
+    .habit-btn:active{transform:translateY(-2px);box-shadow:0 8px 20px rgba(255,118,117,0.3)}
+
+    .habit-list{display:grid;grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));gap:14px}
+    .habit-card{background:linear-gradient(135deg, rgba(255,118,117,0.08), rgba(85,239,196,0.08));padding:16px;border-radius:14px;border:2px solid rgba(255,255,255,0.08);cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden;-webkit-user-select:none}
+    .habit-card:active{transform:translateY(-8px);border-color:#55efc4;box-shadow:0 12px 30px rgba(85,239,196,0.2)}
+
+    .habit-icon{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg, #ff7675, #55efc4);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:1.3rem;margin-bottom:10px;box-shadow:0 6px 16px rgba(0,0,0,0.2)}
+    .habit-name{font-weight:700;color:var(--text);margin-bottom:4px;font-size:1.05rem;-webkit-user-select:none}
+    .habit-meta{font-size:0.85rem;color:var(--muted);opacity:0.8}
+    .habit-streak{margin-top:10px;display:flex;align-items:center;gap:6px;font-weight:700;color:#55efc4}
+    .habit-actions{display:flex;gap:6px;margin-top:10px}
+    .habit-check-btn,.habit-delete-btn{flex:1;padding:8px;border:1px solid rgba(255,255,255,0.2);color:var(--text);border-radius:8px;cursor:pointer;font-weight:600;transition:all 0.2s;font-size:0.8rem;background:rgba(255,255,255,0.1);-webkit-appearance:none;appearance:none}
+    .habit-check-btn:active{background:#00b894;border-color:#00b894;color:white}
+    .habit-delete-btn:active{background:#ff7675;border-color:#ff7675;color:white}
+
+    .stat-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:14px;margin-bottom:16px}
+    .stat-card{background:linear-gradient(135deg, rgba(255,118,117,0.1), rgba(85,239,196,0.1));padding:16px;border-radius:12px;text-align:center;border:1px solid rgba(255,255,255,0.08)}
+    .stat-card-label{font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+    .stat-card-value{font-size:2rem;font-weight:900;color:#55efc4}
+
+    .empty-state{text-align:center;padding:40px;color:var(--muted);opacity:0.6}
+
+    /* Profile Modal */
+    .profile-header{text-align:center;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.1)}
+    .profile-pic{width:100px;height:100px;border-radius:20px;background:linear-gradient(135deg, #ff7675, #55efc4);display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:2.5rem;box-shadow:0 12px 30px rgba(255,118,117,0.3);margin:0 auto 16px;overflow:hidden}
+    .profile-pic img{width:100%;height:100%;object-fit:cover}
+    .profile-name{font-size:1.4rem;font-weight:800;color:var(--text);margin:0 0 4px 0}
+    .profile-email{color:var(--muted);margin:0}
+
+    .support-section{background:linear-gradient(135deg, rgba(116,185,255,0.1), rgba(85,239,196,0.1));padding:20px;border-radius:12px;border:1px solid rgba(85,239,196,0.2);margin-top:20px}
+    .support-title{font-size:1.2rem;font-weight:800;color:var(--text);margin:0 0 12px 0;display:flex;align-items:center;gap:8px}
+    .support-options{display:flex;flex-direction:column;gap:10px}
+    .support-btn{padding:12px 16px;background:rgba(85,239,196,0.2);border:1px solid rgba(85,239,196,0.3);color:#55efc4;border-radius:10px;cursor:pointer;font-weight:600;font-size:0.95rem;transition:all 0.2s;-webkit-appearance:none;appearance:none;text-align:left}
+    .support-btn:active{background:rgba(85,239,196,0.4);transform:translateY(-2px)}
+    .support-icon{margin-right:8px}
+
+    /* About Modal */
+    .about-header{text-align:center;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.1)}
+    .about-logo{width:80px;height:80px;border-radius:16px;background:linear-gradient(135deg, #ff7675, #55efc4);display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:2rem;box-shadow:0 12px 30px rgba(255,118,117,0.3);margin:0 auto 16px}
+    .about-title{font-size:1.6rem;font-weight:800;background:linear-gradient(90deg, #ff7675, #55efc4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:0 0 8px 0}
+    .about-tagline{color:var(--muted);margin:0}
+
+    .about-section{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.1)}
+    .about-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+    .about-section h3{color:var(--text);font-size:1.1rem;margin:0 0 10px 0}
+    .about-section p{color:var(--muted);margin:8px 0;font-size:0.95rem;line-height:1.6}
+    .about-list{list-style:none;padding:0;margin:10px 0;color:var(--muted)}
+    .about-list li{padding:6px 0;padding-left:20px;position:relative}
+    .about-list li::before{content:'✓';position:absolute;left:0;color:#55efc4;font-weight:700}
+
+    ::-webkit-scrollbar{width:8px}
+    ::-webkit-scrollbar-track{background:rgba(255,255,255,0.05)}
+    ::-webkit-scrollbar-thumb{background:rgba(85,239,196,0.3);border-radius:4px}
+    ::-webkit-scrollbar-thumb:hover{background:rgba(85,239,196,0.6)}
+
+    @media (max-width: 768px) {
+      .auth-card{padding:32px 24px}
+      .modal-tab{max-height:90vh;border-radius:16px}
+      header{flex-direction:row}
+      .header-center{order:2}
+      .header-left{order:1;flex:1}
+      .header-right{order:3;flex:0}
+      .header-stats{gap:8px}
+      .stat-item{padding:4px 10px;font-size:0.85rem}
+      .content-area{padding:16px}
+      .social-section{grid-template-columns:repeat(auto-fill, minmax(120px, 1fr))}
+    }
+
+    @media (max-width: 480px) {
+      .auth-card{padding:24px 16px}
+      .welcome-btn{padding:10px 16px;font-size:0.9rem}
+      .habit-list{grid-template-columns:1fr}
+      .modal-tab-content{padding:16px}
+      .header-profile-name{display:none}
+      .header-stats{display:none}
+      .brand h1{display:none}
+      .content-area{padding:12px}
+      .welcome-greeting{font-size:1.3rem}
+      .tasks-list{max-height:150px}
+      .social-section{grid-template-columns:repeat(auto-fill, minmax(100px, 1fr))}
+    }
+
+    @supports (padding: max(0px)) {
+      body{padding-left:max(0px, env(safe-area-inset-left));padding-right:max(0px, env(safe-area-inset-right))}
+      header{padding-left:max(16px, calc(16px + env(safe-area-inset-left)));padding-right:max(16px, calc(16px + env(safe-area-inset-right)))}
+      .modal-tab-content{padding-bottom:max(24px, calc(24px + env(safe-area-inset-bottom)))}
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- AUTH PAGE -->
+  <div class="page auth-page" id="authPage">
+    <div class="auth-container">
+      <div class="auth-card">
+        <!-- LOGIN -->
+        <div id="loginForm">
+          <div class="auth-logo">✨</div>
+          <h1>Habitify</h1>
+          <p>Build habits that stick</p>
+          <div id="loginAlert"></div>
+          <div class="demo-box"><strong>Demo:</strong> demo@habitify.com / demo123</div>
+          <form class="auth-form" onsubmit="handleLogin(event)">
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" id="loginEmail" placeholder="Enter your email" required />
+            </div>
+            <div class="form-group">
+              <label>Password</label>
+              <div class="password-group">
+                <input type="password" id="loginPassword" placeholder="Enter your password" required />
+                <button type="button" class="password-toggle" onclick="togglePasswordVisibility('loginPassword')">👁️</button>
+              </div>
+            </div>
+            <button type="submit" class="auth-btn">🚀 Login</button>
+          </form>
+          <div class="form-divider"><span>OR</span></div>
+          <div class="auth-link">
+            <p style="margin:0 0 8px 0;color:var(--muted)">Don't have an account?</p>
+            <a onclick="switchToSignup()">Create New Account →</a>
+          </div>
+          <div class="auth-link">
+            <a onclick="switchToForgot()" style="font-size:0.85rem">Forgot your password?</a>
+          </div>
+        </div>
+
+        <!-- SIGNUP -->
+        <div id="signupForm" class="hidden">
+          <div class="auth-logo">✨</div>
+          <h1>Create Account</h1>
+          <p>Start your habit journey</p>
+          <div id="signupAlert"></div>
+          <form class="auth-form" onsubmit="handleSignup(event)">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" id="signupName" placeholder="Enter your full name" required />
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" id="signupEmail" placeholder="Enter your email" required />
+            </div>
+            <div class="form-group">
+              <label>Create Password</label>
+              <div class="password-group">
+                <input type="password" id="signupPassword" placeholder="At least 6 characters" required />
+                <button type="button" class="password-toggle" onclick="togglePasswordVisibility('signupPassword')">👁️</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Confirm Password</label>
+              <div class="password-group">
+                <input type="password" id="signupPasswordConfirm" placeholder="Confirm password" required />
+                <button type="button" class="password-toggle" onclick="togglePasswordVisibility('signupPasswordConfirm')">👁️</button>
+              </div>
+            </div>
+            <button type="submit" class="auth-btn">✨ Create Account</button>
+          </form>
+          <div class="form-divider"><span>OR</span></div>
+          <div class="auth-link">
+            <p style="margin:0 0 8px 0;color:var(--muted)">Already have an account?</p>
+            <a onclick="switchToLogin()">Login Here →</a>
+          </div>
+        </div>
+
+        <!-- FORGOT PASSWORD -->
+        <div id="forgotForm" class="hidden">
+          <div class="auth-logo">🔑</div>
+          <h1>Reset Password</h1>
+          <p>Recover your account</p>
+          <div id="forgotAlert"></div>
+          <form class="auth-form" onsubmit="handleReset(event)">
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" id="resetEmail" placeholder="Enter registered email" required />
+            </div>
+            <button type="submit" class="auth-btn">Send Reset Link</button>
+          </form>
+          <div class="form-divider"><span>OR</span></div>
+          <div class="auth-link">
+            <a onclick="switchToLogin()">Back to Login →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP PAGE -->
+  <div class="page app-page" id="appPage">
+    <header>
+      <div class="header-left">
+        <div class="header-profile" onclick="toggleDrawer()">
+          <div class="header-profile-section">
+            <div class="header-profile-avatar" id="profileAvatarHeader">U</div>
+            <div class="header-profile-name" id="headerNameDisplay">User</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="header-stats">
+          <div class="stat-item">
+            <span class="stat-label">LVL</span>
+            <span class="stat-value" id="levelBadge">1</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">XP</span>
+            <span class="stat-value" id="xpBadge">0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">🔥</span>
+            <span class="stat-value" id="streakBadge">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="brand" onclick="openAboutHabitify()">
+          <div class="brand-logo">H</div>
+          <h1>Habitify</h1>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="content-area">
+        <div class="welcome-dashboard">
+          <!-- Welcome Heading -->
+          <div class="welcome-header">
+            <h2 class="welcome-greeting" id="welcomeGreeting">Welcome, User! 👋</h2>
+            <p class="welcome-subtext">Let's build better habits today</p>
+          </div>
+
+          <!-- Pending Tasks Section -->
+          <div class="pending-tasks-section">
+            <h3 class="section-title">
+              <span class="section-title-icon">📋</span>Pending Tasks to Complete
+            </h3>
+            <div class="tasks-list" id="pendingTasksList">
+              <div class="task-item">
+                <div class="task-info">
+                  <div class="task-checkbox" onclick="markTaskDone(this)"></div>
+                  <div class="task-details">
+                    <div class="task-name">Add your first habit</div>
+                    <div class="task-category">Get started</div>
+                  </div>
+                </div>
+                <div class="task-action">
+                  <button class="task-btn" onclick="openTab('health')">Start</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="quick-stats" id="quickStats">
+            <div class="stat-card-small">
+              <div class="stat-card-label">📊 Total</div>
+              <div class="stat-card-value" id="quickTotal">0</div>
+            </div>
+            <div class="stat-card-small">
+              <div class="stat-card-label">✅ Done</div>
+              <div class="stat-card-value" id="quickDone">0</div>
+            </div>
+            <div class="stat-card-small">
+              <div class="stat-card-label">🔥 Streak</div>
+              <div class="stat-card-value" id="quickStreak">0</div>
+            </div>
+            <div class="stat-card-small">
+              <div class="stat-card-label">💎 XP</div>
+              <div class="stat-card-value" id="quickXP">0</div>
+            </div>
+          </div>
+
+          <!-- Social Section with Instagram -->
+          <div>
+            <h3 class="section-title">
+              <span class="section-title-icon">👥</span>Friends & Social Connect
+            </h3>
+            <div class="social-section" id="socialSection">
+              <!-- Social cards loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- DRAWER -->
+    <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+    <div class="drawer" id="drawer">
+      <div class="drawer-header">
+        <div class="drawer-title">Menu</div>
+        <button class="drawer-close" onclick="closeDrawer()">✕</button>
+      </div>
+      <div class="drawer-content">
+        <div class="drawer-item" onclick="openTab('home')">
+          <div class="drawer-item-icon">🏠</div>
+          <div class="drawer-item-text">Home</div>
+        </div>
+        <div class="drawer-item" onclick="openTab('health')">
+          <div class="drawer-item-icon">🏥</div>
+          <div class="drawer-item-text">Health Quest</div>
+        </div>
+        <div class="drawer-item" onclick="openTab('learning')">
+          <div class="drawer-item-icon">📚</div>
+          <div class="drawer-item-text">Learning Quest</div>
+        </div>
+        <div class="drawer-item" onclick="openTab('productivity')">
+          <div class="drawer-item-icon">⚡</div>
+          <div class="drawer-item-text">Productivity Quest</div>
+        </div>
+        <div class="drawer-item" onclick="openTab('relationships')">
+          <div class="drawer-item-icon">❤️</div>
+          <div class="drawer-item-text">Relationships Quest</div>
+        </div>
+        <div class="drawer-item" onclick="openTab('money')">
+          <div class="drawer-item-icon">💰</div>
+          <div class="drawer-item-text">Money Quest</div>
+        </div>
+        <div class="drawer-item" onclick="openTab('social')">
+          <div class="drawer-item-icon">👥</div>
+          <div class="drawer-item-text">Leaderboard</div>
+        </div>
+        <div class="drawer-item" onclick="openTab('achievements')">
+          <div class="drawer-item-icon">🏆</div>
+          <div class="drawer-item-text">Achievements</div>
+        </div>
+        <div class="drawer-divider"></div>
+        <div class="drawer-item" onclick="openProfileSettings()">
+          <div class="drawer-item-icon">⚙️</div>
+          <div class="drawer-item-text">Settings</div>
+        </div>
+        <div class="drawer-item" onclick="handleLogout()">
+          <div class="drawer-item-icon">🚪</div>
+          <div class="drawer-item-text">Logout</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+  <div class="modal-overlay" id="aboutModal">
+    <div class="modal-tab">
+      <div class="modal-tab-header">
+        <h2 class="modal-tab-title">About Habitify</h2>
+        <button class="modal-close-btn" onclick="closeModal('aboutModal')">✕</button>
+      </div>
+      <div class="modal-tab-content">
+        <div class="about-header">
+          <div class="about-logo">✨</div>
+          <h2 class="about-title">Habitify</h2>
+          <p class="about-tagline">Build Better Habits. Transform Your Life.</p>
+        </div>
+
+        <div class="about-section">
+          <h3>🎯 What is Habitify?</h3>
+          <p>Habitify is a gamified habit tracking application designed to help you build positive habits through interactive goals, social accountability, and rewarding progression. It combines the science of habit formation with engaging game mechanics to keep you motivated.</p>
+        </div>
+
+        <div class="about-section">
+          <h3>✨ Key Benefits</h3>
+          <ul class="about-list">
+            <li><strong>Gamified Experience:</strong> Earn XP, level up, and unlock achievements</li>
+            <li><strong>Social Accountability:</strong> Connect with friends and support each other</li>
+            <li><strong>Multi-Category Tracking:</strong> Organize habits across 5 life areas</li>
+            <li><strong>Streak Motivation:</strong> Build consecutive day streaks</li>
+            <li><strong>Progress Visualization:</strong> See your growth through stats and badges</li>
+            <li><strong>Cross-Platform:</strong> Use on web or install as mobile app</li>
+            <li><strong>Offline Support:</strong> Access habits anytime</li>
+          </ul>
+        </div>
+
+        <div class="about-section">
+          <h3>🚀 Get Started</h3>
+          <p>Create an account, add habits across different life categories, and start building a better version of yourself through consistent daily actions. Join thousands of users transforming their lives!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="homeModal">
+    <div class="modal-tab">
+      <div class="modal-tab-header">
+        <h2 class="modal-tab-title">🏠 Dashboard</h2>
+        <button class="modal-close-btn" onclick="closeModal('homeModal')">✕</button>
+      </div>
+      <div class="modal-tab-content">
+        <h3 style="margin-top:0;color:var(--text)">Today's Stats</h3>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-card-label">Total</div>
+            <div class="stat-card-value" id="statTotal">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">Done</div>
+            <div class="stat-card-value" id="statDone">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">Streak</div>
+            <div class="stat-card-value" id="statStreak">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">XP</div>
+            <div class="stat-card-value" id="statXP">0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="healthModal">
+    <div class="modal-tab">
+      <div class="modal-tab-header">
+        <h2 class="modal-tab-title">🏥 Health Quest</h2>
+        <button class="modal-close-btn" onclick="closeModal('healthModal')">✕</button>
+      </div>
+      <div class="modal-tab-content">
+        <div class="habit-input">
+          <input type="text" id="healthName" placeholder="Add habit" />
+          <select id="healthFreq"><option value="daily">Daily</option><option value="weekly">Weekly</option></select>
+          <button class="habit-btn" onclick="addHabit('health', document.getElementById('healthName').value, document.getElementById('healthFreq').value); document.getElementById('healthName').value=''">+</button>
+        </div>
+        <div id="healthList" class="habit-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="learningModal">
+    <div class="modal-tab">
+      <div class="modal-tab-header">
+        <h2 class="modal-tab-title">📚 Learning Quest</h2>
+        <button class="modal-close-btn" onclick="closeModal('learningModal')">✕</button>
+      </div>
+      <div class="modal-tab-content">
+        <div class="habit-input">
+          <input type="text" id="learnName" placeholder="Add habit" />
+          <select id="learnFreq"><option value="daily">Daily</option><option value="weekly">Weekly</option></select>
+          <button class="habit-btn" onclick="addHabit('learning', document.getElementById('learnName').value, document.getElementById('learnFreq').value); document.getElementById('learnName').value=''">+</button>
+        </div>
+        <div id="learnList" class="habit-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="productivityModal">
+    <div class="modal-tab">
+      <div class="modal-tab-header">
+        <h2 class="modal-tab-title">⚡ Productivity Quest</h2>
+        <button class="modal-close-btn" onclick="closeModal('productivityModal')">✕</button>
+      </div>
+      <div class="modal-tab-content">
+        <div class="habit-input">
+          <input type="text" id="prodName" placeholder="Add habit" />
+          <select id="prodFreq"><option value="daily">Daily</option><option value="weekly">Weekly</option></select>
+          <button class="habit-btn" onclick="addHabit('productivity', document.getElementById('prodName').value, document.getElementById('prodFreq').value); document.getElementById('prodName').value=''">+</button>
+        </div>
+        <div id="prodList" class="habit-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="relationshipsModal">
+    <div class="modal-tab">
+      <div class="modal-tab-header">
+        <h2 class="modal-tab-title">❤️ Relationships Quest</h2>
+        <button class="modal-close-btn" onclick="closeModal('relationshipsModal')">✕</button>
+      </div>
+      <div class="modal-tab-content">
+        <div class="habit-input">
+          <input type="text" id="relName" placeholder="Add habit" />
+          <select id="relFreq"><option value="daily">Daily</option><option value="weekly">Weekly</option></select>
+          <button class="habit-btn" onclick="addHabit('relationships', document.getElementById('relName').value, document.getElementById('relFreq').value); document.getElementById('relName').value=''">+</button>
+        </div>
+        <div id="relList" class="habit-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="moneyModal">
+    <div class="modal-tab">
+      <div class="modal-tab-header">
+        <h2 class="modal-tab-title">💰 Money Quest</h2>
+        <button class="modal-close-btn" onclick="closeModal('moneyModal')">✕</button>
+      </div>
+      <div class="modal-tab-content">
+        <div class="habit-input">
+          <input type="text" id="moneyName" placeholder="Add habit" />
+          <select id="moneyFreq"><option value="daily">Daily</option><option value="weekly">Weekly</option></select>
+          <button class="habit-btn" onclick="addHabit('money', document.getElementById('moneyName').value, document.getElementById('moneyFreq').value); document.getElementById('moneyName').value=''">+</button>
+        </div>
+        <div id="moneyList" class="habit-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="socialModal">
+    <div class="modal-tab">
+      <div class="modal-tab-header">
+        <h2 class="modal-tab-title">👥 Leaderboard</h2>
+        <button class="modal-close-btn" onclick="closeModal('socialModal')">✕</button>
+      </div>
+      <div class="modal-tab-content">
+        <div id="leaderboard" style="display:grid;gap:12px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="achievementsModal">
+    <div class="modal-tab">
+      <div class="modal-tab-header">
+        <h2 class="modal-tab-title">🏆 Achievements</h2>
+        <button class="modal-close-btn" onclick="closeModal('achievementsModal')">✕</button>
+      </div>
+      <div class="modal-tab-content">
+        <div id="achievementsList" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(100px, 1fr));gap:12px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="profileModal">
+    <div class="modal-tab">
+      <div class="modal-tab-header">
+        <h2 class="modal-tab-title">⚙️ Profile & Settings</h2>
+        <button class="modal-close-btn" onclick="closeModal('profileModal')">✕</button>
+      </div>
+      <div class="modal-tab-content">
+        <div class="profile-header">
+          <div class="profile-pic" id="profilePicLarge">U</div>
+          <h3 class="profile-name" id="profileDisplayName">User</h3>
+          <p class="profile-email" id="profileDisplayEmail">user@example.com</p>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.05);padding:16px;border-radius:12px;margin-bottom:20px">
+          <h4 style="margin:0 0 12px 0;color:var(--text)">Account Stats</h4>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div style="background:rgba(255,255,255,0.03);padding:12px;border-radius:8px;text-align:center">
+              <div style="font-size:0.85rem;color:var(--muted);margin-bottom:4px">Level</div>
+              <div style="font-size:1.5rem;font-weight:900;color:#55efc4" id="profileLevel">1</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03);padding:12px;border-radius:8px;text-align:center">
+              <div style="font-size:0.85rem;color:var(--muted);margin-bottom:4px">Total XP</div>
+              <div style="font-size:1.5rem;font-weight:900;color:#55efc4" id="profileXP">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer Support Section -->
+        <div class="support-section">
+          <h3 class="support-title">
+            <span class="support-icon">💬</span>Customer Support
+          </h3>
+          <p style="color:var(--muted);font-size:0.9rem;margin:0 0 12px 0">Need help? Get in touch with our support team</p>
+          <div class="support-options">
+            <button class="support-btn" onclick="contactSupport('email')">
+              <span class="support-icon">📧</span>Email Support
+            </button>
+            <button class="support-btn" onclick="contactSupport('chat')">
+              <span class="support-icon">💬</span>Live Chat
+            </button>
+            <button class="support-btn" onclick="contactSupport('faq')">
+              <span class="support-icon">❓</span>FAQ & Help
+            </button>
+            <button class="support-btn" onclick="contactSupport('feedback')">
+              <span class="support-icon">⭐</span>Send Feedback
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('data:application/javascript,self.addEventListener("install",e=>self.skipWaiting());self.addEventListener("activate",e=>e.waitUntil(clients.claim()));').catch(()=>{});
+    }
+
+    const STORAGE_KEY = 'habitify_v4';
+    const users = {};
+    let currentUser = null;
+    let gameData = {};
+    const colors = ['#ff7675', '#55efc4', '#74b9ff', '#a8e6cf', '#ffeaa7', '#fd79a8', '#b892ff'];
+
+    function getColorForName(name) {
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      return colors[Math.abs(hash) % colors.length];
+    }
+
+    function initializeDemo(){
+      const storedUsers = JSON.parse(localStorage.getItem(STORAGE_KEY + '_users')) || {};
+      Object.assign(users, storedUsers);
+      if(!users['demo@habitify.com']){
+        users['demo@habitify.com'] = {email: 'demo@habitify.com', password: 'demo123', name: 'Demo User'};
+        localStorage.setItem(STORAGE_KEY + '_users', JSON.stringify(users));
+      }
+    }
+
+    function togglePasswordVisibility(id){
+      const el = document.getElementById(id);
+      el.type = el.type === 'password' ? 'text' : 'password';
+    }
+
+    function showAlert(elementId, message, type){
+      document.getElementById(elementId).innerHTML = `<div class="alert ${type}">${message}</div>`;
+      setTimeout(() => {document.getElementById(elementId).innerHTML = '';}, 4000);
+    }
+
+    function switchToSignup(){
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('forgotForm').classList.add('hidden');
+      document.getElementById('signupForm').classList.remove('hidden');
+      document.getElementById('signupName').focus();
+    }
+
+    function switchToLogin(){
+      document.getElementById('signupForm').classList.add('hidden');
+      document.getElementById('forgotForm').classList.add('hidden');
+      document.getElementById('loginForm').classList.remove('hidden');
+      document.getElementById('loginEmail').focus();
+    }
+
+    function switchToForgot(){
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('signupForm').classList.add('hidden');
+      document.getElementById('forgotForm').classList.remove('hidden');
+      document.getElementById('resetEmail').focus();
+    }
+
+    function handleLogin(e){
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+
+      if(!users[email] || users[email].password !== password){
+        showAlert('loginAlert', '❌ Invalid credentials', 'error');
+        return;
+      }
+
+      currentUser = {email, name: users[email].name};
+      localStorage.setItem(STORAGE_KEY + '_currentUser', JSON.stringify(currentUser));
+      
+      const userData = JSON.parse(localStorage.getItem(STORAGE_KEY + '_data_' + email)) || {
+        user: {name: users[email].name, xp: 0, level: 1, streak: 0},
+        habits: {health: [], learning: [], productivity: [], relationships: [], money: []},
+        achievements: [],
+        activity: [],
+        peers: [{id: 1, name: 'Alex Chen', level: 3, xp: 250, streak: 12, habits: 5}, {id: 2, name: 'Jordan Smith', level: 2, xp: 150, streak: 8, habits: 4}, {id: 3, name: 'Casey Lee', level: 4, xp: 450, streak: 25, habits: 8}]
+      };
+      localStorage.setItem(STORAGE_KEY + '_data_' + email, JSON.stringify(userData));
+
+      showAuth(false);
+      loadUserData();
+    }
+
+    function handleSignup(e){
+      e.preventDefault();
+      const name = document.getElementById('signupName').value.trim();
+      const email = document.getElementById('signupEmail').value.trim();
+      const password = document.getElementById('signupPassword').value;
+      const confirmPassword = document.getElementById('signupPasswordConfirm').value;
+
+      if(password.length < 6){
+        showAlert('signupAlert', '❌ Password must be at least 6 characters', 'error');
+        return;
+      }
+
+      if(password !== confirmPassword){
+        showAlert('signupAlert', '❌ Passwords do not match', 'error');
+        return;
+      }
+
+      if(users[email]){
+        showAlert('signupAlert', '❌ Email already registered', 'error');
+        return;
+      }
+
+      users[email] = {email, password, name};
+      localStorage.setItem(STORAGE_KEY + '_users', JSON.stringify(users));
+
+      const userData = {
+        user: {name, xp: 0, level: 1, streak: 0},
+        habits: {health: [], learning: [], productivity: [], relationships: [], money: []},
+        achievements: [],
+        activity: [],
+        peers: [{id: 1, name: 'Alex Chen', level: 3, xp: 250, streak: 12, habits: 5}, {id: 2, name: 'Jordan Smith', level: 2, xp: 150, streak: 8, habits: 4}, {id: 3, name: 'Casey Lee', level: 4, xp: 450, streak: 25, habits: 8}]
+      };
+      localStorage.setItem(STORAGE_KEY + '_data_' + email, JSON.stringify(userData));
+
+      currentUser = {email, name};
+      localStorage.setItem(STORAGE_KEY + '_currentUser', JSON.stringify(currentUser));
+
+      showAlert('signupAlert', '✅ Account created! Logging in...', 'success');
+      setTimeout(() => {showAuth(false); loadUserData();}, 1000);
+    }
+
+    function handleReset(e){
+      e.preventDefault();
+      const email = document.getElementById('resetEmail').value.trim();
+
+      if(!users[email]){
+        showAlert('forgotAlert', '❌ Email not found', 'error');
+        return;
+      }
+
+      const tempPassword = 'TempPass' + Math.floor(Math.random() * 10000);
+      users[email].password = tempPassword;
+      localStorage.setItem(STORAGE_KEY + '_users', JSON.stringify(users));
+
+      showAlert('forgotAlert', `✅ Password reset! Temporary: ${tempPassword}`, 'success');
+      setTimeout(() => {switchToLogin();}, 2000);
+    }
+
+    function showAuth(show){
+      document.getElementById('authPage').classList.toggle('active', show);
+      document.getElementById('appPage').classList.toggle('active', !show);
+    }
+
+    function loadUserData(){
+      const data = JSON.parse(localStorage.getItem(STORAGE_KEY + '_data_' + currentUser.email)) || {};
+      gameData = data;
+      updateUI();
+    }
+
+    function updateUI(){
+      const initials = (gameData.user.name || 'U').charAt(0).toUpperCase();
+      const color = getColorForName(gameData.user.name || 'User');
+      
+      document.getElementById('profileAvatarHeader').style.background = `linear-gradient(135deg, ${color}, ${color}cc)`;
+      document.getElementById('profileAvatarHeader').innerHTML = `<span style="color:white;font-weight:700;font-size:1rem">${initials}</span>`;
+      document.getElementById('headerNameDisplay').textContent = gameData.user.name || 'User';
+      
+      document.getElementById('welcomeGreeting').textContent = `Welcome, ${gameData.user.name}! 👋`;
+      
+      document.getElementById('levelBadge').textContent = gameData.user.level;
+      document.getElementById('xpBadge').textContent = gameData.user.xp;
+      document.getElementById('streakBadge').textContent = gameData.user.streak || 0;
+
+      document.getElementById('profilePicLarge').style.background = `linear-gradient(135deg, ${color}, ${color}cc)`;
+      document.getElementById('profilePicLarge').innerHTML = `<span style="color:white;font-weight:900;font-size:2.5rem">${initials}</span>`;
+      document.getElementById('profileDisplayName').textContent = gameData.user.name;
+      document.getElementById('profileDisplayEmail').textContent = currentUser.email;
+      document.getElementById('profileLevel').textContent = gameData.user.level;
+      document.getElementById('profileXP').textContent = gameData.user.xp;
+
+      const total = Object.values(gameData.habits).reduce((s, arr) => s + arr.length, 0);
+      const done = Object.values(gameData.habits).reduce((s, arr) => s + arr.filter(h => h.done).length, 0);
+      
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statDone').textContent = done;
+      document.getElementById('statStreak').textContent = gameData.user.streak || 0;
+      document.getElementById('statXP').textContent = gameData.user.xp;
+      
+      document.getElementById('quickTotal').textContent = total;
+      document.getElementById('quickDone').textContent = done;
+      document.getElementById('quickStreak').textContent = gameData.user.streak || 0;
+      document.getElementById('quickXP').textContent = gameData.user.xp;
+
+      // Pending Tasks
+      const pendingTasks = Object.entries(gameData.habits).flatMap(([cat, habits]) =>
+        habits.filter(h => !h.done).map(h => ({name: h.name, category: cat}))
+      );
+      
+      const pendingList = document.getElementById('pendingTasksList');
+      if(pendingTasks.length === 0){
+        pendingList.innerHTML = '<div class="task-item"><div class="task-info"><div class="task-checkbox" style="opacity:0.5"></div><div class="task-details"><div class="task-name">All tasks completed! 🎉</div><div class="task-category">Great job</div></div></div></div>';
+      } else {
+        pendingList.innerHTML = pendingTasks.slice(0, 5).map((t, i) => `
+          <div class="task-item">
+            <div class="task-info">
+              <div class="task-checkbox" onclick="markTaskDone(this)"></div>
+              <div class="task-details">
+                <div class="task-name">${t.name}</div>
+                <div class="task-category">${t.category}</div>
+              </div>
+            </div>
+            <div class="task-action">
+              <button class="task-btn" onclick="completeHabitByName('${t.category}', '${t.name}')">Done</button>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Social Section with Instagram
+      const socialSection = document.getElementById('socialSection');
+      socialSection.innerHTML = gameData.peers.map(p => {
+        const pColor = getColorForName(p.name);
+        const pInitials = p.name.charAt(0).toUpperCase();
+        return `
+          <div class="social-card">
+            <div class="social-avatar" style="background:linear-gradient(135deg, ${pColor}, ${pColor}cc)"><span style="color:white;font-weight:700">${pInitials}</span></div>
+            <div class="social-name">${p.name}</div>
+            <div class="social-level">Level ${p.level}</div>
+            <div class="social-actions">
+              <button class="social-btn" onclick="checkInstagram('${p.name}')">📱 Instagram</button>
+              <button class="social-btn" onclick="viewPeerTasks('${p.name}')">📋 Tasks</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      ['health', 'learning', 'productivity', 'relationships', 'money'].forEach(cat => renderHabits(cat));
+
+      document.getElementById('leaderboard').innerHTML = gameData.peers.map((p, i) => `
+        <div style="background:rgba(255,255,255,0.05);padding:12px;border-radius:10px">
+          <div style="font-weight:700;color:var(--text)">${i+1}. ${p.name}</div>
+          <div style="font-size:0.85rem;color:var(--muted)">Level ${p.level} • 🔥 ${p.streak}d • ${p.xp} XP</div>
+        </div>
+      `).join('');
+
+      document.getElementById('achievementsList').innerHTML = [{icon: '🎯'}, {icon: '🔥'}, {icon: '⭐'}, {icon: '💯'}, {icon: '👑'}, {icon: '🚀'}].map(a => `
+        <div style="text-align:center;padding:12px;background:rgba(255,255,255,0.05);border-radius:10px">
+          <div style="font-size:2rem">${a.icon}</div>
+        </div>
+      `).join('');
+    }
+
+    function markTaskDone(el){
+      el.style.background = '#00b894';
+      el.innerHTML = '✓';
+    }
+
+    function checkInstagram(name){
+      alert(`📱 ${name}'s Instagram Profile\n\nFollowing their daily habits on Instagram!\n\nHandle: @${name.toLowerCase().replace(/\s/g, '_')}`);
+    }
+
+    function viewPeerTasks(name){
+      alert(`📋 ${name}'s Pending Tasks\n\n• Morning Exercise\n• Read 30 mins\n• Meditate\n• Drink 8 glasses of water\n\nLet's cheer them on! 🎉`);
+    }
+
+    function completeHabitByName(category, name){
+      const habit = gameData.habits[category].find(h => h.name === name);
+      if(habit){
+        habit.done = true;
+        habit.streak++;
+        gameData.user.xp += 50;
+        gameData.activity.push({type: 'habit_completed', name: habit.name, category, xp: 50});
+        saveUserData();
+        updateUI();
+      }
+    }
+
+    function addHabit(category, name, freq){
+      if(!name.trim()) return;
+      const habit = {id: Date.now(), name: name.trim(), freq, streak: 0, done: false};
+      gameData.habits[category].push(habit);
+      gameData.user.xp += 10;
+      gameData.activity.push({type: 'habit_added', name: name.trim(), category, xp: 0});
+      saveUserData();
+      renderHabits(category);
+      updateUI();
+    }
+
+    function completeHabit(category, id){
+      const habit = gameData.habits[category].find(h => h.id === id);
+      if(habit){
+        habit.done = !habit.done;
+        if(habit.done){
+          habit.streak++;
+          gameData.user.xp += 50;
+          gameData.activity.push({type: 'habit_completed', name: habit.name, category, xp: 50});
+        }
+        saveUserData();
+        updateUI();
+      }
+    }
+
+    function deleteHabit(category, id){
+      gameData.habits[category] = gameData.habits[category].filter(h => h.id !== id);
+      saveUserData();
+      renderHabits(category);
+      updateUI();
+    }
+
+    function renderHabits(category){
+      const ids = {health: 'healthList', learning: 'learnList', productivity: 'prodList', relationships: 'relList', money: 'moneyList'};
+      const container = document.getElementById(ids[category]);
+      if(!container) return;
+      container.innerHTML = gameData.habits[category].length === 0 ? '<div class="empty-state">No habits yet</div>' : gameData.habits[category].map(h => `
+        <div class="habit-card">
+          <div class="habit-icon">${h.name.charAt(0)}</div>
+          <div class="habit-name">${h.name}</div>
+          <div class="habit-meta">${h.freq}</div>
+          <div class="habit-streak">🔥 ${h.streak}</div>
+          <div class="habit-actions">
+            <button class="habit-check-btn" onclick="completeHabit('${category}', ${h.id})">✓</button>
+            <button class="habit-delete-btn" onclick="deleteHabit('${category}', ${h.id})">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function saveUserData(){
+      localStorage.setItem(STORAGE_KEY + '_data_' + currentUser.email, JSON.stringify(gameData));
+    }
+
+    function toggleDrawer(){
+      document.getElementById('drawer').classList.toggle('show');
+      document.getElementById('drawerOverlay').classList.toggle('show');
+    }
+
+    function closeDrawer(){
+      document.getElementById('drawer').classList.remove('show');
+      document.getElementById('drawerOverlay').classList.remove('show');
+    }
+
+    function openTab(tabName){
+      closeDrawer();
+      const modalId = {home: 'homeModal', health: 'healthModal', learning: 'learningModal', productivity: 'productivityModal', relationships: 'relationshipsModal', money: 'moneyModal', social: 'socialModal', achievements: 'achievementsModal'}[tabName];
+      if(modalId) document.getElementById(modalId).classList.add('show');
+    }
+
+    function closeModal(modalId){
+      document.getElementById(modalId).classList.remove('show');
+    }
+
+    function openProfileSettings(){
+      closeDrawer();
+      document.getElementById('profileModal').classList.add('show');
+    }
+
+    function openAboutHabitify(){
+      document.getElementById('aboutModal').classList.add('show');
+    }
+
+    function contactSupport(type){
+      const messages = {
+        email: '📧 Email: support@habitify.com\n\nWe typically respond within 24 hours.',
+        chat: '💬 Live Chat Active 9 AM - 6 PM (IST)\n\nConnect with our support team now!',
+        faq: '❓ Common Questions:\n\n• How do I create a habit?\n• How is XP calculated?\n• How do I reset my password?\n\nVisit our help center for more.',
+        feedback: '⭐ Your feedback helps us improve!\n\nWe read every suggestion and feature request.\n\nEmail: feedback@habitify.com'
+      };
+      alert(messages[type] || 'Support option');
+    }
+
+    function handleLogout(){
+      if(confirm('Logout?')){
+        localStorage.removeItem(STORAGE_KEY + '_currentUser');
+        currentUser = null;
+        gameData = {};
+        showAuth(true);
+        document.getElementById('loginForm').classList.remove('hidden');
+        document.getElementById('signupForm').classList.add('hidden');
+        document.getElementById('forgotForm').classList.add('hidden');
+        document.getElementById('loginEmail').value = '';
+        document.getElementById('loginPassword').value = '';
+      }
+    }
+
+    window.togglePasswordVisibility = togglePasswordVisibility;
+    window.switchToSignup = switchToSignup;
+    window.switchToLogin = switchToLogin;
+    window.switchToForgot = switchToForgot;
+    window.toggleDrawer = toggleDrawer;
+    window.closeDrawer = closeDrawer;
+    window.openTab = openTab;
+    window.closeModal = closeModal;
+    window.openProfileSettings = openProfileSettings;
+    window.openAboutHabitify = openAboutHabitify;
+    window.handleLogout = handleLogout;
+    window.contactSupport = contactSupport;
+    window.completeHabit = completeHabit;
+    window.deleteHabit = deleteHabit;
+    window.addHabit = addHabit;
+    window.handleLogin = handleLogin;
+    window.handleSignup = handleSignup;
+    window.handleReset = handleReset;
+    window.markTaskDone = markTaskDone;
+    window.checkInstagram = checkInstagram;
+    window.viewPeerTasks = viewPeerTasks;
+    window.completeHabitByName = completeHabitByName;
+
+    window.addEventListener('load', () => {
+      initializeDemo();
+      const user = localStorage.getItem(STORAGE_KEY + '_currentUser');
+      if(user){
+        currentUser = JSON.parse(user);
+        loadUserData();
+        showAuth(false);
+      } else {
+        showAuth(true);
+      }
+    });
+
+    document.addEventListener('touchstart', () => {}, {passive: true});
+    document.addEventListener('touchend', () => {}, {passive: true});
+
+  </script>
+</body>
+</html>
