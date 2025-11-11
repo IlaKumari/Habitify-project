@@ -233,6 +233,30 @@
     .about-list li{padding:6px 0;padding-left:20px;position:relative}
     .about-list li::before{content:'✓';position:absolute;left:0;color:#55efc4;font-weight:700}
 
+    /* Account Information Modal */
+    .account-info-section{background:linear-gradient(135deg, rgba(85,239,196,0.08), rgba(116,185,255,0.08));padding:16px;border-radius:12px;margin-bottom:16px;border:1px solid rgba(85,239,196,0.15)}
+    .account-info-label{font-size:0.8rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;font-weight:700}
+    .account-info-value{font-size:1.1rem;color:var(--text);font-weight:600;margin-bottom:8px;word-break:break-all}
+    .account-info-value.email{font-size:0.95rem}
+    
+    .password-change-form{background:rgba(255,118,117,0.08);padding:16px;border-radius:12px;border:1px solid rgba(255,118,117,0.2)}
+    .password-change-form h4{margin:0 0 12px 0;color:var(--text);font-size:1rem}
+    .password-input-group{margin-bottom:12px}
+    .password-input-group label{display:block;font-size:0.8rem;color:var(--muted);margin-bottom:6px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px}
+    .password-input-group input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.03);color:var(--text);font-size:0.95rem;outline:none;transition:all 0.2s;-webkit-appearance:none;appearance:none}
+    .password-input-group input:focus{border-color:#ff7675;background:rgba(255,255,255,0.05);box-shadow:0 0 12px rgba(255,118,117,0.2)}
+    .password-input-group input::placeholder{color:rgba(255,255,255,0.3)}
+    
+    .password-change-buttons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .password-change-buttons button{padding:10px;border:none;border-radius:10px;font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.2s;-webkit-appearance:none;appearance:none}
+    .password-change-buttons .btn-save{background:linear-gradient(135deg, #55efc4, #74b9ff);color:white}
+    .password-change-buttons .btn-save:active{transform:scale(0.98)}
+    .password-change-buttons .btn-cancel{background:rgba(255,255,255,0.1);color:var(--text);border:1px solid rgba(255,255,255,0.2)}
+    .password-change-buttons .btn-cancel:active{transform:scale(0.98)}
+
+    .account-status{display:flex;align-items:center;gap:8px;font-size:0.9rem;color:var(--muted);margin-bottom:12px}
+    .account-status .status-badge{display:inline-block;width:8px;height:8px;border-radius:50%;background:#00b894}
+
     ::-webkit-scrollbar{width:8px}
     ::-webkit-scrollbar-track{background:rgba(255,255,255,0.05)}
     ::-webkit-scrollbar-thumb{background:rgba(85,239,196,0.3);border-radius:4px}
@@ -736,6 +760,9 @@
           </h3>
           <p style="color:var(--muted);font-size:0.9rem;margin:0 0 12px 0">Need help? Get in touch with our support team</p>
           <div class="support-options">
+            <button class="support-btn" onclick="contactSupport('Information')">
+              <span class="support-icon">📱</span>Account Information 
+            </button>
             <button class="support-btn" onclick="contactSupport('email')">
               <span class="support-icon">📧</span>Email Support
             </button>
@@ -749,6 +776,73 @@
               <span class="support-icon">⭐</span>Send Feedback
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Information Modal -->
+  <div class="modal-overlay" id="accountInfoModal">
+    <div class="modal-tab">
+      <div class="modal-tab-header">
+        <h2 class="modal-tab-title">👤 Account Information</h2>
+        <button class="modal-close-btn" onclick="closeModal('accountInfoModal')">✕</button>
+      </div>
+      <div class="modal-tab-content">
+        <div class="account-status">
+          <span class="status-badge"></span>
+          <span>Account Status: <strong style="color:var(--text)">Active</strong></span>
+        </div>
+
+        <div class="account-info-section">
+          <div class="account-info-label">📧 Email Address</div>
+          <div class="account-info-value email" id="accountEmail">user@example.com</div>
+        </div>
+
+        <div class="account-info-section">
+          <div class="account-info-label">👤 Full Name</div>
+          <div class="account-info-value" id="accountName">User</div>
+        </div>
+
+        <div class="account-info-section">
+          <div class="account-info-label">📅 Account Created</div>
+          <div class="account-info-value" id="accountCreated">November 11, 2025</div>
+        </div>
+
+        <div class="account-info-section">
+          <div class="account-info-label">⏱️ Last Login</div>
+          <div class="account-info-value" id="accountLastLogin">Today at 2:30 PM</div>
+        </div>
+
+        <div style="height:1px;background:rgba(255,255,255,0.1);margin:20px 0"></div>
+
+        <h3 style="margin:20px 0 16px 0;color:var(--text);font-size:1.1rem">🔐 Security Settings</h3>
+
+        <div class="password-change-form">
+          <h4>Change Password</h4>
+          <div class="password-input-group">
+            <label for="currentPassword">Current Password</label>
+            <input type="password" id="currentPassword" placeholder="Enter your current password" />
+          </div>
+          <div class="password-input-group">
+            <label for="newPassword">New Password</label>
+            <input type="password" id="newPassword" placeholder="Enter new password" />
+          </div>
+          <div class="password-input-group">
+            <label for="confirmPassword">Confirm New Password</label>
+            <input type="password" id="confirmPassword" placeholder="Confirm new password" />
+          </div>
+          <div class="password-change-buttons">
+            <button class="btn-save" onclick="changePassword()">✓ Save Changes</button>
+            <button class="btn-cancel" onclick="resetPasswordForm()">✕ Cancel</button>
+          </div>
+          <div id="passwordChangeMessage" style="margin-top:12px;text-align:center"></div>
+        </div>
+
+        <div style="margin-top:20px;padding:16px;background:rgba(116,185,255,0.08);border-radius:12px;border:1px solid rgba(116,185,255,0.2);text-align:center">
+          <p style="color:var(--muted);font-size:0.9rem;margin:0">
+            💡 Keep your password secure. Never share it with anyone. We will never ask for your password via email or chat.
+          </p>
         </div>
       </div>
     </div>
@@ -1110,13 +1204,89 @@
     }
 
     function contactSupport(type){
-      const messages = {
-        email: '📧 Email: support@habitify.com\n\nWe typically respond within 24 hours.',
-        chat: '💬 Live Chat Active 9 AM - 6 PM (IST)\n\nConnect with our support team now!',
-        faq: '❓ Common Questions:\n\n• How do I create a habit?\n• How is XP calculated?\n• How do I reset my password?\n\nVisit our help center for more.',
-        feedback: '⭐ Your feedback helps us improve!\n\nWe read every suggestion and feature request.\n\nEmail: feedback@habitify.com'
-      };
-      alert(messages[type] || 'Support option');
+      if(type === 'Information'){
+        // Open account information modal
+        closeDrawer();
+        document.getElementById('profileModal').classList.remove('show');
+        document.getElementById('accountInfoModal').classList.add('show');
+        updateAccountInfo();
+      } else {
+        const messages = {
+          email: '📧 Email: support@habitify.com\n\nWe typically respond within 24 hours.',
+          chat: '💬 Live Chat Active 9 AM - 6 PM (IST)\n\nConnect with our support team now!',
+          faq: '❓ Common Questions:\n\n• How do I create a habit?\n• How is XP calculated?\n• How do I reset my password?\n\nVisit our help center for more.',
+          feedback: '⭐ Your feedback helps us improve!\n\nWe read every suggestion and feature request.\n\nEmail: feedback@habitify.com'
+        };
+        alert(messages[type] || 'Support option');
+      }
+    }
+
+    function updateAccountInfo(){
+      document.getElementById('accountEmail').textContent = currentUser.email;
+      document.getElementById('accountName').textContent = currentUser.name || 'User';
+      
+      // Get account creation date
+      const userData = JSON.parse(localStorage.getItem(STORAGE_KEY + '_' + currentUser.email)) || {};
+      const createdDate = userData.createdDate || new Date().toLocaleDateString();
+      document.getElementById('accountCreated').textContent = createdDate;
+      
+      // Get last login
+      const today = new Date();
+      document.getElementById('accountLastLogin').textContent = `Today at ${today.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+    }
+
+    function changePassword(){
+      const currentPassword = document.getElementById('currentPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const messageDiv = document.getElementById('passwordChangeMessage');
+      
+      if(!currentPassword || !newPassword || !confirmPassword){
+        messageDiv.innerHTML = '<div class="alert error" style="margin:0">❌ Please fill all password fields</div>';
+        return;
+      }
+      
+      if(currentPassword !== currentUser.password){
+        messageDiv.innerHTML = '<div class="alert error" style="margin:0">❌ Current password is incorrect</div>';
+        return;
+      }
+      
+      if(newPassword.length < 6){
+        messageDiv.innerHTML = '<div class="alert error" style="margin:0">❌ New password must be at least 6 characters</div>';
+        return;
+      }
+      
+      if(newPassword !== confirmPassword){
+        messageDiv.innerHTML = '<div class="alert error" style="margin:0">❌ Passwords do not match</div>';
+        return;
+      }
+      
+      if(newPassword === currentPassword){
+        messageDiv.innerHTML = '<div class="alert error" style="margin:0">❌ New password must be different from current password</div>';
+        return;
+      }
+      
+      // Update password
+      currentUser.password = newPassword;
+      const users = JSON.parse(localStorage.getItem(STORAGE_KEY + '_users')) || {};
+      users[currentUser.email].password = newPassword;
+      
+      localStorage.setItem(STORAGE_KEY + '_currentUser', JSON.stringify(currentUser));
+      localStorage.setItem(STORAGE_KEY + '_users', JSON.stringify(users));
+      
+      messageDiv.innerHTML = '<div class="alert success" style="margin:0">✓ Password changed successfully!</div>';
+      resetPasswordForm();
+      
+      setTimeout(() => {
+        messageDiv.innerHTML = '';
+      }, 3000);
+    }
+
+    function resetPasswordForm(){
+      document.getElementById('currentPassword').value = '';
+      document.getElementById('newPassword').value = '';
+      document.getElementById('confirmPassword').value = '';
+      document.getElementById('passwordChangeMessage').innerHTML = '';
     }
 
     function handleLogout(){
@@ -1145,6 +1315,9 @@
     window.openAboutHabitify = openAboutHabitify;
     window.handleLogout = handleLogout;
     window.contactSupport = contactSupport;
+    window.changePassword = changePassword;
+    window.resetPasswordForm = resetPasswordForm;
+    window.updateAccountInfo = updateAccountInfo;
     window.completeHabit = completeHabit;
     window.deleteHabit = deleteHabit;
     window.addHabit = addHabit;
